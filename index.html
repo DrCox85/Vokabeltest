@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>English Vokabeltrainer Pro - Master</title>
-    <script src="tailwindcss.js"></script>
-    <link href="all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="manifest" href="manifest.json">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
@@ -169,7 +169,7 @@
         async function loadData() {
             const indicator = document.getElementById('mode-indicator');
             const cachedData = localStorage.getItem('cachedVocabs');
-
+            
             if (cachedData) {
                 processData(cachedData);
                 indicator.innerText = "Geladen (Offline-Modus)";
@@ -207,7 +207,7 @@
             }).filter(v => v);
 
             fillPageSelects();
-
+            
             // Start-Button aktivieren
             const btn = document.getElementById('btn-all');
             btn.disabled = false;
@@ -215,9 +215,9 @@
         }
 
         function fillPageSelects() {
-            const pages = [...new Set(allVocabs.map(v => v.page))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+            const pages = [...new Set(allVocabs.map(v => v.page))].sort((a,b) => a.localeCompare(b, undefined, {numeric: true}));
             const mS = document.getElementById('page-select'), pS = document.getElementById('print-page-select');
-            if (mS && pS) {
+            if(mS && pS) {
                 mS.innerHTML = pS.innerHTML = '<option value="">Alle Seiten</option>';
                 pages.forEach(p => {
                     const o = `<option value="${p}">Seite ${p}</option>`;
@@ -245,7 +245,7 @@
             const curr = state.queue[state.currentIndex];
             document.getElementById('dir-label').innerText = `Übersetze ins ${curr.dir}`;
             document.getElementById('q-text').innerText = curr.q;
-
+            
             const hA = document.getElementById('hint-area'), hB = document.getElementById('h-box'), hBtn = document.getElementById('h-btn');
             if (curr.orig.hint) {
                 hA.classList.remove('hidden'); hB.innerText = curr.orig.hint;
@@ -267,7 +267,7 @@
             const curr = state.queue[state.currentIndex];
             const raw = document.getElementById('user-input').value.trim();
             const simplify = s => s.toLowerCase().replace(/[.,!?;:]/g, "").replace(/\s+/g, " ").trim();
-
+            
             const correctOpts = curr.a.split('/').map(o => simplify(o));
             const isCorrect = correctOpts.includes(simplify(raw));
             const isPerfect = curr.a.split('/').map(o => o.trim()).includes(raw);
@@ -311,7 +311,7 @@
             const sel = document.getElementById('print-page-select').value;
             let list = (sel !== "") ? allVocabs.filter(v => String(v.page) === String(sel)) : [...allVocabs];
             list.sort(() => Math.random() - 0.5);
-
+            
             const table = (title, hide, isSol = false) => {
                 let h = `<h1 style="font-size:20pt;margin-bottom:10px">${title} (${sel || 'Alle'})</h1><table><thead><tr><th>Deutsch</th><th>Englisch</th><th>S.</th></tr></thead><tbody>`;
                 list.forEach(v => {
@@ -325,7 +325,7 @@
             const div = document.createElement('div'); div.id = 'print-section';
             if (mode === 'all') div.innerHTML = table("Vokabel-Übersicht", "none", false);
             else div.innerHTML = table("Vokabeltest", mode, false) + '<div style="page-break-before:always"></div>' + table("Lösungen", "none", true);
-
+            
             document.body.appendChild(div);
             setTimeout(() => { window.print(); div.remove(); }, 500);
         }
@@ -333,13 +333,13 @@
         let catState = { energy: parseInt(localStorage.getItem('catEnergy')) || 50 };
         function updateCatUI() {
             const bar = document.getElementById('cat-energy-bar');
-            if (bar) bar.style.width = catState.energy + "%";
+            if(bar) bar.style.width = catState.energy + "%";
             localStorage.setItem('catEnergy', catState.energy);
         }
         function feedCat() { catState.energy = Math.min(100, catState.energy + 2); updateCatUI(); }
-
+        
         // Initialisierung
-        loadData();
+        loadData(); 
         updateCatUI();
 
         // Enter-Taste Event Listener
@@ -352,7 +352,7 @@
             }
         });
 
-        window.addEventListener('keydown', function (e) {
+        window.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !document.getElementById('result-screen').classList.contains('hidden')) {
                 location.reload();
             }
