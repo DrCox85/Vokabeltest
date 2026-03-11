@@ -108,20 +108,48 @@
         async function loadData() {
             try {
                 const response = await fetch(SHEET_URL);
+                if (!response.ok) throw new Error('Netzwerk-Fehler');
+
                 const csv = await response.text();
-                const lines = csv.split(/\r?\n/).filter(l => l.trim() !== "");
-                allVocabs = lines.slice(1).map(line => {
-                    const row = line.match(/(".*?"|[^",;]+)(?=\s*[;,]|\s*$)/g);
-                    if (row && row.length >= 2) {
-                        return { eng: row[0].replace(/^"|"$/g, '').trim(), ger: row[1].replace(/^"|"$/g, '').trim(), page: row[2]?.replace(/^"|"$/g, '').trim() || "0", hint: row[3]?.replace(/^"|"$/g, '').trim() || "", showInstant: row[4]?.trim().toLowerCase() === 'x' };
-                    }
-                    return null;
-                }).filter(v => v);
-                fillPageSelects();
-                document.getElementById('btn-all').disabled = false;
-                document.getElementById('btn-all').classList.replace('bg-slate-300', 'bg-blue-600');
-                document.getElementById('mode-indicator').innerText = "Bereit!";
-            } catch (e) { document.getElementById('mode-indicator').innerText = "Fehler!"; }
+
+                // Erfolg! Speichere die Rohdaten für später offline
+                localStorage.setItem('cachedVocabs', csv);
+                processData(csv);
+                document.getElementById('mode-indicator').innerText = "Online (Aktualisiert)";
+
+            } catch (e) {
+                console.log("Offline-Modus: Lade aus Cache...");
+                const cachedData = localStorage.getItem('cachedVocabs');
+
+                if (cachedData) {
+                    processData(cachedData);
+                    document.getElementById('mode-indicator').innerText = "Offline-Modus (Cache)";
+                } else {
+                    document.getElementById('mode-indicator').innerText = "Fehler: Keine Daten verfügbar";
+                }
+            }
+        }
+
+        // Die eigentliche Logik zum Parsen schieben wir in eine eigene Funktion
+        function processData(csv) {
+            const lines = csv.split(/\r?\n/).filter(l => l.trim() !== "");
+            allVocabs = lines.slice(1).map(line => {
+                const row = line.match(/(".*?"|[^",;]+)(?=\s*[;,]|\s*$)/g);
+                if (row && row.length >= 2) {
+                    return {
+                        eng: row[0].replace(/^"|"$/g, '').trim(),
+                        ger: row[1].replace(/^"|"$/g, '').trim(),
+                        page: row[2]?.replace(/^"|"$/g, '').trim() || "0",
+                        hint: row[3]?.replace(/^"|"$/g, '').trim() || "",
+                        showInstant: row[4]?.trim().toLowerCase() === 'x'
+                    };
+                }
+                return null;
+            }).filter(v => v);
+
+            fillPageSelects();
+            // ... hier noch die Event-Listener und Button-Aktivierungen
+            enableStart();
         }
 
         function fillPageSelects() {
