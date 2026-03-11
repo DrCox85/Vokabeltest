@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Vokabeltrainer Pro - Master</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+        html, body { height: 100%; background-color: #f3f4f6; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        #app { width: 100%; max-width: 500px; margin: 20px auto 300px auto; }
+        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-60px) scale(1.5); opacity: 0; } }
+        .food-particle { position: absolute; pointer-events: none; animation: floatUp 0.8s ease-out forwards; z-index: 100; }
+        #cat-emoji { transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        #print-section { display: none; }
+        @media print {
+            body > *:not(#print-section) { display: none !important; }
+            html, body { height: auto !important; overflow: visible !important; background: white !important; }
+            #print-section { display: block !important; width: 100% !important; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            th, td { border: 1pt solid #000; padding: 8px; text-align: left; font-size: 10pt; }
+            th { background-color: #f0f0f0 !important; -webkit-print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body class="p-4">
+    <div id="app" class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+        <div class="bg-blue-600 p-4 text-white text-center relative">
+            <h1 class="text-xl font-bold">Vokabeltest Pro</h1>
+            <p id="mode-indicator" class="text-blue-100 text-xs">Lade Daten...</p>
+            <div id="score-display" class="hidden absolute top-4 right-4 font-mono font-bold bg-blue-700 px-3 py-1 rounded-full text-xs">0 / 0</div>
+        </div>
+
+        <div id="cat-container" class="relative bg-orange-50 border-b border-orange-100 p-3 flex items-center justify-center gap-4">
+            <div id="food-spawn-point" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"></div>
+            <div id="cat-emoji" class="text-4xl">🐱</div>
+            <div class="flex-1 max-w-[150px]">
+                <div class="w-full bg-gray-200 rounded-full h-2"><div id="cat-energy-bar" class="bg-orange-400 h-2 rounded-full transition-all duration-500" style="width: 50%"></div></div>
+                <p id="cat-status" class="text-[10px] font-bold text-orange-700 mt-1 uppercase text-center">Cookie ist bereit!</p>
+            </div>
+        </div>
+
+        <div id="start-screen" class="p-8 space-y-4">
+            <button onclick="openPrintModal()" class="w-full bg-slate-100 text-slate-600 p-3 rounded-xl font-bold text-sm border hover:bg-slate-200 transition"><i class="fas fa-print mr-2"></i>Druck-Optionen</button>
+            <div class="pt-4">
+                <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Seite wählen:</label>
+                <select id="page-select" class="w-full p-3 border-2 border-slate-100 rounded-xl bg-white outline-none focus:border-blue-500"></select>
+            </div>
+            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border">
+                <span class="text-xs font-bold text-slate-600 uppercase">Mix-Modus (DE/EN)</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="mix-mode-toggle" class="sr-only peer">
+                    <div class="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                </label>
+            </div>
+            <div class="space-y-2 pt-4">
+                <button id="btn-all" onclick="setupGame('all')" disabled class="w-full bg-slate-300 text-white p-4 rounded-xl font-bold transition">Start</button>
+            </div>
+        </div>
+
+        <div id="game-screen" class="p-8 hidden">
+            <div class="w-full bg-gray-100 rounded-full h-1.5 mb-6"><div id="progress-bar" class="bg-blue-600 h-1.5 rounded-full transition-all duration-300"></div></div>
+            <div class="text-center mb-6">
+                <p id="dir-label" class="text-gray-400 uppercase text-[10px] font-bold mb-1">Übersetze...</p>
+                <h2 id="q-text" class="text-3xl font-black text-slate-800">...</h2>
+                <div id="hint-area" class="hidden mt-4">
+                    <button onclick="toggleHint()" id="h-btn" class="text-blue-500 text-[10px] font-bold uppercase"><i class="fas fa-lightbulb mr-1"></i>Tipp</button>
+                    <div id="h-box" class="hidden mt-2 p-3 bg-amber-50 border border-amber-100 rounded-xl text-xs italic text-amber-800 text-left"></div>
+                </div>
+            </div>
+            <input type="text" id="user-input" class="w-full px-4 py-4 text-xl border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none text-center mb-6 shadow-sm" placeholder="Antwort..." autocomplete="off">
+            <div id="feedback-area" class="hidden mb-6 p-4 rounded-xl text-center text-sm border-2">
+                <p id="feedback-text" class="font-bold"></p>
+                <p id="correct-display" class="mt-1 text-slate-600 hidden">Lösung: <span class="font-bold"></span></p>
+            </div>
+            <button id="check-btn" onclick="checkAnswer()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition">Prüfen</button>
+            <button id="next-btn" onclick="nextQuestion()" class="hidden w-full bg-slate-800 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition">Weiter</button>
+        </div>
+
+        <div id="result-screen" class="hidden p-8 overflow-y-auto max-h-[80vh]">
+            <div class="text-center mb-6"><h2 class="text-2xl font-bold">Fertig!</h2><div class="text-5xl font-black text-blue-600 my-2" id="res-pct">0%</div></div>
+            <div id="history-list" class="space-y-2 mb-6"></div>
+            <button onclick="location.reload()" class="w-full bg-slate-800 text-white font-bold py-4 rounded-2xl">Menü</button>
+        </div>
+
+        <div id="print-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl">
+                <h3 class="font-bold mb-4 text-lg"><i class="fas fa-print text-blue-500 mr-2"></i>Drucken</h3>
+                <div class="mb-4"><label class="text-[10px] font-bold text-slate-400 uppercase">Seite:</label><select id="print-page-select" class="w-full border rounded p-1 text-sm"></select></div>
+                <div class="space-y-2">
+                    <button onclick="generatePrint('all')" class="w-full p-3 text-left border rounded-xl hover:bg-blue-50 font-bold text-sm">Übersichtsliste (keine Lösungen)</button>
+                    <button onclick="generatePrint('ger')" class="w-full p-3 text-left border rounded-xl hover:bg-blue-50 font-bold text-sm">Test: Nur Englisch vorgegeben</button>
+                    <button onclick="generatePrint('eng')" class="w-full p-3 text-left border rounded-xl hover:bg-blue-50 font-bold text-sm">Test: Nur Deutsch vorgegeben</button>
+                    <button onclick="generatePrint('random')" class="w-full p-3 text-left border rounded-xl hover:bg-blue-50 font-bold text-sm">Test: Zufallsmix</button>
+                </div>
+                <button onclick="closePrintModal()" class="w-full mt-4 text-slate-400 text-xs uppercase font-bold">Abbrechen</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS2PoCLYeVUTmqthOrhjVJ6f22cGQo0xMcvOv_OFBXTqHAHg9TqmW_yVgxM5FI-j5VxVnnqXatI07X-/pub?output=csv';
+        let allVocabs = [];
+        let state = { queue: [], currentIndex: 0, score: 0, history: [] };
+
+        async function loadData() {
+            try {
+                const response = await fetch(SHEET_URL);
+                const csv = await response.text();
+                const lines = csv.split(/\r?\n/).filter(l => l.trim() !== "");
+                allVocabs = lines.slice(1).map(line => {
+                    const row = line.match(/(".*?"|[^",;]+)(?=\s*[;,]|\s*$)/g);
+                    if (row && row.length >= 2) {
+                        return { eng: row[0].replace(/^"|"$/g, '').trim(), ger: row[1].replace(/^"|"$/g, '').trim(), page: row[2]?.replace(/^"|"$/g, '').trim() || "0", hint: row[3]?.replace(/^"|"$/g, '').trim() || "", showInstant: row[4]?.trim().toLowerCase() === 'x' };
+                    }
+                    return null;
+                }).filter(v => v);
+                fillPageSelects();
+                document.getElementById('btn-all').disabled = false;
+                document.getElementById('btn-all').classList.replace('bg-slate-300', 'bg-blue-600');
+                document.getElementById('mode-indicator').innerText = "Bereit!";
+            } catch (e) { document.getElementById('mode-indicator').innerText = "Fehler!"; }
+        }
+
+        function fillPageSelects() {
+            const pages = [...new Set(allVocabs.map(v => v.page))].sort((a,b) => a.localeCompare(b, undefined, {numeric: true}));
+            const mS = document.getElementById('page-select'), pS = document.getElementById('print-page-select');
+            mS.innerHTML = pS.innerHTML = '<option value="">Alle Seiten</option>';
+            pages.forEach(p => {
+                const o = `<option value="${p}">Seite ${p}</option>`;
+                mS.innerHTML += o; pS.innerHTML += o;
+            });
+        }
+
+        function setupGame(mode) {
+            const sel = document.getElementById('page-select').value;
+            const mix = document.getElementById('mix-mode-toggle').checked;
+            let filtered = (sel !== "") ? allVocabs.filter(v => String(v.page) === String(sel)) : [...allVocabs];
+            state.queue = filtered.sort(() => Math.random() - 0.5).map(v => {
+                const swap = mix && Math.random() > 0.5;
+                return { q: swap ? v.eng : v.ger, a: swap ? v.ger : v.eng, dir: swap ? "Deutsch" : "Englisch", orig: v };
+            });
+            state.currentIndex = 0; state.score = 0; state.history = [];
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('score-display').classList.remove('hidden');
+            updateUI();
+        }
+
+        function updateUI() {
+            const curr = state.queue[state.currentIndex];
+            document.getElementById('dir-label').innerText = `Übersetze ins ${curr.dir}`;
+            document.getElementById('q-text').innerText = curr.q;
+            
+            const hA = document.getElementById('hint-area'), hB = document.getElementById('h-box'), hBtn = document.getElementById('h-btn');
+            if (curr.orig.hint) {
+                hA.classList.remove('hidden'); hB.innerText = curr.orig.hint;
+                if (curr.orig.showInstant) { hB.classList.remove('hidden'); hBtn.classList.add('hidden'); }
+                else { hB.classList.add('hidden'); hBtn.classList.remove('hidden'); }
+            } else { hA.classList.add('hidden'); }
+
+            document.getElementById('user-input').value = "";
+            document.getElementById('user-input').readOnly = false;
+            document.getElementById('feedback-area').classList.add('hidden');
+            document.getElementById('next-btn').classList.add('hidden');
+            document.getElementById('check-btn').classList.remove('hidden');
+            document.getElementById('score-display').innerText = `${state.currentIndex + 1}/${state.queue.length}`;
+            document.getElementById('progress-bar').style.width = `${(state.currentIndex / state.queue.length) * 100}%`;
+            setTimeout(() => document.getElementById('user-input').focus(), 100);
+        }
+
+        function checkAnswer() {
+            const curr = state.queue[state.currentIndex];
+            const raw = document.getElementById('user-input').value.trim();
+            const simplify = s => s.toLowerCase().replace(/[.,!?;:]/g, "").replace(/\s+/g, " ").trim();
+            
+            const correctOpts = curr.a.split('/').map(o => simplify(o));
+            const isCorrect = correctOpts.includes(simplify(raw));
+            const isPerfect = curr.a.split('/').map(o => o.trim()).includes(raw);
+
+            document.getElementById('user-input').readOnly = true;
+            const fA = document.getElementById('feedback-area'), fT = document.getElementById('feedback-text'), cD = document.getElementById('correct-display');
+            fA.classList.remove('hidden');
+            cD.querySelector('span').innerText = curr.a;
+            cD.classList.toggle('hidden', isPerfect);
+
+            if (isCorrect) {
+                state.score++; feedCat();
+                fT.innerText = isPerfect ? "Perfekt! 🌟" : "Richtig! (Andere Bedeutung möglich)";
+                fA.className = isPerfect ? "mb-6 p-4 rounded-xl text-center text-sm bg-green-50 text-green-700 border-2 border-green-200" : "mb-6 p-4 rounded-xl text-center text-sm bg-yellow-50 text-yellow-700 border-2 border-yellow-200";
+            } else {
+                fT.innerText = "Leider falsch.";
+                fA.className = "mb-6 p-4 rounded-xl text-center text-sm bg-red-50 text-red-700 border-2 border-red-200";
+                cD.classList.remove('hidden');
+            }
+            state.history.push({ q: curr.q, a: curr.a, u: raw, c: isCorrect });
+            document.getElementById('check-btn').classList.add('hidden');
+            document.getElementById('next-btn').classList.remove('hidden');
+        }
+
+        function nextQuestion() {
+            state.currentIndex++;
+            if (state.currentIndex >= state.queue.length) {
+                document.getElementById('game-screen').classList.add('hidden');
+                document.getElementById('result-screen').classList.remove('hidden');
+                document.getElementById('res-pct').innerText = Math.round((state.score / state.history.length) * 100) + "%";
+                document.getElementById('history-list').innerHTML = state.history.map(h => `<div class="p-2 border rounded ${h.c ? 'bg-green-50' : 'bg-red-50'} text-xs font-bold">${h.q} -> ${h.c ? '✓' : '✗ ' + (h.u || '-')} <span class="block font-normal text-slate-500">${h.a}</span></div>`).join('');
+            } else updateUI();
+        }
+
+        function openPrintModal() { document.getElementById('print-modal').classList.remove('hidden'); }
+        function closePrintModal() { document.getElementById('print-modal').classList.add('hidden'); }
+        function toggleHint() { document.getElementById('h-box').classList.remove('hidden'); document.getElementById('h-btn').classList.add('hidden'); }
+
+        function generatePrint(mode) {
+            closePrintModal();
+            const sel = document.getElementById('print-page-select').value;
+            let list = (sel !== "") ? allVocabs.filter(v => String(v.page) === String(sel)) : [...allVocabs];
+            list.sort(() => Math.random() - 0.5);
+            
+            const table = (title, hide, isSol = false) => {
+                let h = `<h1>${title} (${sel || 'Alle'})</h1><table><thead><tr><th>Deutsch</th><th>Englisch</th><th>S.</th></tr></thead><tbody>`;
+                list.forEach(v => {
+                    let g = v.ger, e = v.eng;
+                    if (!isSol) { if (hide === 'ger') g = ""; if (hide === 'eng') e = ""; if (hide === 'random') { if (Math.random() > 0.5) g = ""; else e = ""; } }
+                    h += `<tr><td>${g}</td><td>${e}</td><td>${v.page}</td></tr>`;
+                });
+                return h + "</tbody></table>";
+            };
+
+            const div = document.createElement('div'); div.id = 'print-section';
+            if (mode === 'all') div.innerHTML = table("Vokabel-Übersicht", "none", false);
+            else div.innerHTML = table("Vokabeltest", mode, false) + '<div style="page-break-before:always"></div>' + table("Lösungen", "none", true);
+            
+            document.body.appendChild(div);
+            setTimeout(() => { window.print(); div.remove(); }, 500);
+        }
+
+        let catState = { energy: parseInt(localStorage.getItem('catEnergy')) || 50 };
+        function updateCatUI() {
+            document.getElementById('cat-energy-bar').style.width = catState.energy + "%";
+            localStorage.setItem('catEnergy', catState.energy);
+        }
+        function feedCat() { catState.energy = Math.min(100, catState.energy + 2); updateCatUI(); }
+        loadData(); updateCatUI();
+		
+		// Füge diesen Block am Ende deines Scripts hinzu, 
+		// damit die Enter-Taste überall funktioniert:
+
+		document.getElementById('user-input').addEventListener('keypress', function (e) {
+			if (e.key === 'Enter') {
+				// Wenn der "Prüfen" Button sichtbar ist -> Prüfen
+				if (!document.getElementById('check-btn').classList.contains('hidden')) {
+					checkAnswer();
+				} 
+				// Wenn der "Weiter" Button sichtbar ist -> Nächste Frage
+				else if (!document.getElementById('next-btn').classList.contains('hidden')) {
+					nextQuestion();
+				}
+			}
+		});
+
+		// Falls du im Result-Screen bist und Enter drückst, um zum Menü zu gelangen:
+		window.addEventListener('keydown', function(e) {
+			if (e.key === 'Enter' && !document.getElementById('result-screen').classList.contains('hidden')) {
+				location.reload();
+			}
+		});
+    </script>
+</body>
+</html>
