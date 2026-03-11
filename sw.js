@@ -1,6 +1,10 @@
 const CACHE_NAME = 'vokabel-trainer-v1';
 const ASSETS = [
     'index.html',
+    'manifest.json',
+    'sw.js',
+    'tailwind.js',
+    'all.min.css'
     // Falls du externe CSS/JS lokal speichern willst, hier auflisten. 
     // Da du CDN-Links (Tailwind/FontAwesome) nutzt, werden diese 
     // vom Browser oft automatisch gecacht, aber für echtes Offline 

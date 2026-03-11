@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>English Vokabeltrainer Pro - Master</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="tailwindcss.js"></script>
+    <link href="all.min.css" rel="stylesheet">
 	<link rel="manifest" href="manifest.json">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
@@ -106,26 +106,31 @@
         let state = { queue: [], currentIndex: 0, score: 0, history: [] };
 
         async function loadData() {
+            const indicator = document.getElementById('mode-indicator');
+
+            // 1. Sofort schauen, ob wir etwas im Cache haben
+            const cachedData = localStorage.getItem('cachedVocabs');
+            if (cachedData) {
+                processData(cachedData);
+                indicator.innerText = "Geladen (Offline-Modus)";
+            }
+
+            // 2. Versuchen, frische Daten zu holen
             try {
                 const response = await fetch(SHEET_URL);
-                if (!response.ok) throw new Error('Netzwerk-Fehler');
+                if (!response.ok) throw new Error();
 
                 const csv = await response.text();
 
-                // Erfolg! Speichere die Rohdaten für später offline
-                localStorage.setItem('cachedVocabs', csv);
-                processData(csv);
-                document.getElementById('mode-indicator').innerText = "Online (Aktualisiert)";
-
+                // Wenn die neuen Daten anders sind als die alten, aktualisieren
+                if (csv !== cachedData) {
+                    localStorage.setItem('cachedVocabs', csv);
+                    processData(csv); // Überschreibt die Liste mit frischen Daten
+                    indicator.innerText = "Daten aktualisiert!";
+                }
             } catch (e) {
-                console.log("Offline-Modus: Lade aus Cache...");
-                const cachedData = localStorage.getItem('cachedVocabs');
-
-                if (cachedData) {
-                    processData(cachedData);
-                    document.getElementById('mode-indicator').innerText = "Offline-Modus (Cache)";
-                } else {
-                    document.getElementById('mode-indicator').innerText = "Fehler: Keine Daten verfügbar";
+                if (!cachedData) {
+                    indicator.innerText = "Keine Verbindung & kein Cache!";
                 }
             }
         }
