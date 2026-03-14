@@ -131,7 +131,7 @@
                     <div id="h-box" class="hidden mt-2 p-3 bg-amber-50 border border-amber-100 rounded-xl text-xs italic text-amber-800 text-left"></div>
                 </div>
             </div>
-            <input type="text" id="user-input" class="w-full px-4 py-4 text-xl border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none text-center mb-6 shadow-sm" placeholder="Antwort..." autocomplete="off">
+            <input type="text" id="user-input" class="w-full px-4 py-4 text-xl border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none text-center mb-6 shadow-sm" placeholder="Antwort..." autocomplete="off"autocapitalize="none" autocorrect="off">>
             <div id="feedback-area" class="hidden mb-6 p-4 rounded-xl text-center text-sm border-2">
                 <p id="feedback-text" class="font-bold"></p>
                 <p id="correct-display" class="mt-1 text-slate-600 hidden">Lösung: <span class="font-bold"></span></p>
@@ -367,9 +367,23 @@
             }
         });
 
-        window.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !document.getElementById('result-screen').classList.contains('hidden')) {
-                location.reload();
+        // Erweitere deinen bestehenden Enter-Listener:
+        document.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                const startScreen = document.getElementById('start-screen');
+                const gameScreen = document.getElementById('game-screen');
+                
+                // Wenn wir noch im Startmenü sind:
+                if (!startScreen.classList.contains('hidden')) {
+                    setupGame('all');
+                } 
+                // Wenn wir im Spiel sind (dein bisheriger Code):
+                else if (!gameScreen.classList.contains('hidden')) {
+                    const cb = document.getElementById('check-btn');
+                    const nb = document.getElementById('next-btn');
+                    if (!cb.classList.contains('hidden')) checkAnswer();
+                    else if (!nb.classList.contains('hidden')) nextQuestion();
+                }
             }
         });
 
