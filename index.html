@@ -276,7 +276,12 @@
         function checkAnswer() {
             const curr = state.queue[state.currentIndex];
             const raw = document.getElementById('user-input').value.trim();
-            const simplify = s => s.toLowerCase().replace(/[.,!?;:]/g, "").replace(/\s+/g, " ").trim();
+            // Diese Zeile sorgt dafür, dass "09:00" und "9:00" das Gleiche sind
+            const simplify = s => s.toLowerCase()
+                .replace(/[.,!?;:]/g, "")
+                .replace(/\b0(\d)/g, "$1") // Entfernt die Null vor Zahlen (aus 09 wird 9)
+                .replace(/\s+/g, " ")
+                .trim();
             
             const correctOpts = curr.a.split('/').map(o => simplify(o));
             const isCorrect = correctOpts.includes(simplify(raw));
