@@ -170,23 +170,33 @@
             const indicator = document.getElementById('mode-indicator');
             const cachedData = localStorage.getItem('cachedVocabs');
             
+            // 1. Falls Cache da ist, lade ihn schon mal (damit die App schnell ist)
             if (cachedData) {
                 processData(cachedData);
-                indicator.innerText = "Geladen (Offline-Modus)";
+                indicator.innerText = "Suche nach Updates..."; // Neutraler Text am Start
             }
 
             try {
+                // 2. Versuche das Google Sheet zu erreichen
                 const response = await fetch(SHEET_URL);
                 if (!response.ok) throw new Error();
                 const csv = await response.text();
 
+                // Wenn Daten neu sind, speichern und anzeigen
                 if (csv !== cachedData) {
                     localStorage.setItem('cachedVocabs', csv);
                     processData(csv);
-                    indicator.innerText = "Daten aktualisiert!";
+                    indicator.innerText = "Daten aktuell! (Online)";
+                } else {
+                    indicator.innerText = "Online (Keine neuen Updates)";
                 }
             } catch (e) {
-                if (!cachedData) indicator.innerText = "Keine Verbindung & kein Cache!";
+                // 3. Nur wenn fetch fehlschlägt, zeigen wir "Offline" an
+                if (cachedData) {
+                    indicator.innerText = "Offline-Modus (Cache geladen)";
+                } else {
+                    indicator.innerText = "Kein Internet & kein Cache!";
+                }
             }
         }
 
