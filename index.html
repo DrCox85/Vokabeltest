@@ -97,6 +97,36 @@
         <div id="cat-container" class="relative bg-orange-50 border-b border-orange-100 p-3 flex items-center justify-center gap-4">
             <div id="food-spawn-point" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"></div>
             <div id="cat-emoji" class="text-4xl">🐱</div>
+            <div class="cat-sprite"></div>
+
+            <style>
+            .cat-sprite {
+                width: 32px;           /* Breite eines EINZELNEN Frames */
+                height: 32px;          /* Höhe eines EINZELNEN Frames */
+                background-image: url('anim/sleeping.png');
+                background-repeat: no-repeat;
+                
+                /* 
+                steps(4) sagt dem Browser, dass er nicht weich überschneiden,
+                sondern exakt in 4 harten Schritten springen soll.
+                */
+                animation: playCat 0.8s steps(4) infinite;
+            }
+
+            @keyframes playCat {
+                from {
+                    background-position: 0px 0px;
+                }
+                to {
+                    /* 
+                    Gesamtbreite aller 4 Frames zusammen (4 x 64px = 256px).
+                    Negativ, weil das Bild nach links geschoben wird.
+                    */
+                    background-position: -256px 0px; 
+                }
+            }
+            </style>
+
             <div class="flex-1 max-w-[150px]">
                 <div class="w-full bg-gray-200 rounded-full h-2"><div id="cat-energy-bar" class="bg-orange-400 h-2 rounded-full transition-all duration-500" style="width: 50%"></div></div>
                 <p id="cat-status" class="text-[10px] font-bold text-orange-700 mt-1 uppercase text-center">Cookie ist bereit!</p>
