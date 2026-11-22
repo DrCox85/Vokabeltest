@@ -1,41 +1,34 @@
-const CACHE_NAME = 'vokabel-trainer-v1';
+const CACHE_NAME = 'vokabel-trainer-v2';
 const ASSETS = [
-    'index.html',
-    'manifest.json',
-    'sw.js',
-    'tailwind.js',
-    'all.min.css'
-    // Falls du externe CSS/JS lokal speichern willst, hier auflisten. 
-    // Da du CDN-Links (Tailwind/FontAwesome) nutzt, werden diese 
-    // vom Browser oft automatisch gecacht, aber für echtes Offline 
-    // müssten sie hier rein oder lokal im Projekt liegen.
+  './',
+  'index.html',
+  'style.css',
+  'tailwind.js',
+  'amim/sleeping.png',
+  'manifest.json',
+  'js/cat.js',
+  'js/data.js',
+  'js/app.js'
 ];
 
-// Installieren: Dateien in den Cache laden
 self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll(ASSETS);
-        })
-    );
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+  );
 });
 
-// Aktivieren: Alte Caches löschen
 self.addEventListener('activate', (event) => {
-    event.waitUntil(
-        caches.keys().then((keys) => {
-            return Promise.all(
-                keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
-            );
-        })
-    );
+  event.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+      );
+    })
+  );
 });
 
-// Fetch: Anfragen abfangen und aus dem Cache bedienen
 self.addEventListener('fetch', (event) => {
-    event.respondWith(
-        caches.match(event.request).then((response) => {
-            return response || fetch(event.request);
-        })
-    );
+  event.respondWith(
+    caches.match(event.request).then((response) => response || fetch(event.request))
+  );
 });
