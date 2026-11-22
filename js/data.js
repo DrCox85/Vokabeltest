@@ -35,9 +35,30 @@ async function loadData() {
 
 function processData(csv) {
     const lines = csv.split(/\r?\n/).filter(l => l.trim() !== "");
+    
+    // Sauberer CSV-Zeilen-Parser (verhindert Spalten-Verschiebung bei Kommas)
+    const parseCSVLine = (text) => {
+        const result = [];
+        let cell = '';
+        let inQuotes = false;
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            if (char === '"') {
+                inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+                result.push(cell.trim());
+                cell = '';
+            } else {
+                cell += char;
+            }
+        }
+        result.push(cell.trim());
+        return result;
+    };
+
     allVocabs = lines.slice(1).map(line => {
-        const row = line.match(/(".*?"|[^",;]+)(?=\s*[;,]|\s*$)/g);
-        if (row && row.length >= 2) {
+        const row = parseCSVLine(line);
+        if (row && row.length >= 2 && row[0] !== "") {
             return {
                 foreign: row[0].replace(/^"|"$/g, '').trim(),
                 ger: row[1].replace(/^"|"$/g, '').trim(),
