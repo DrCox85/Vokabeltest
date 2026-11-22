@@ -1,0 +1,75 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+
+html, body {
+    height: 100%;
+    background-color: #f3f4f6;
+    font-family: 'Inter', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#app {
+    width: 100%;
+    max-width: 500px;
+    margin: 20px auto 300px auto;
+}
+
+/* --- COOKIE SPRITE-SHEET & ANIMATIONEN --- */
+.cookie-sleeping {
+    width: 32px;
+    height: 32px;
+    background-image: url('sleeping.png');
+    background-repeat: no-repeat;
+    display: inline-block;
+    transform: scale(1.6); /* Etwas vergrößert für bessere Sichtbarkeit */
+    image-rendering: pixelated; /* Hält Pixel-Art gestochen scharf */
+    animation: sleepAnim 1.8s steps(11) infinite;
+}
+
+@keyframes sleepAnim {
+    from { background-position: 0px 0px; }
+    to   { background-position: -352px 0px; } /* 11 Frames * 32px */
+}
+
+/* Sprung-Effekt bei richtiger Antwort */
+.cat-jump {
+    animation: sleepAnim 1.8s steps(11) infinite, catJumpAnim 0.6s ease-out;
+}
+
+@keyframes catJumpAnim {
+    0%   { transform: scale(1.6) translateY(0); }
+    40%  { transform: scale(1.8) translateY(-14px); }
+    75%  { transform: scale(1.5) translateY(-2px); }
+    100% { transform: scale(1.6) translateY(0); }
+}
+
+/* Kopfschütteln bei falscher Antwort */
+.cat-sad {
+    animation: sleepAnim 1.8s steps(11) infinite, catShake 0.4s ease-in-out;
+}
+
+@keyframes catShake {
+    0%, 100% { transform: scale(1.6) translateX(0); }
+    25%, 75% { transform: scale(1.6) translateX(-4px); }
+    50%      { transform: scale(1.6) translateX(4px); }
+}
+
+/* Fliegender Fisch */
+.flying-food {
+    position: absolute;
+    font-size: 1.4rem;
+    pointer-events: none;
+    z-index: 50;
+    transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* --- DRUCK-ANSICHT --- */
+#print-section { display: none; }
+
+@media print {
+    body > *:not(#print-section) { display: none !important; }
+    html, body { height: auto !important; overflow: visible !important; background: white !important; }
+    #print-section { display: block !important; width: 100% !important; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1pt solid #000; padding: 8px; text-align: left; font-size: 10pt; }
+    th { background-color: #f0f0f0 !important; -webkit-print-color-adjust: exact; }
+}
