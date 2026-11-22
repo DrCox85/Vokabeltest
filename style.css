@@ -17,7 +17,7 @@ html, body {
 .cookie-sleeping {
     width: 32px;
     height: 32px;
-    background-image: url('sleeping.png');
+    background-image: url('anim/sleeping.png');
     background-repeat: no-repeat;
     display: inline-block;
     transform: scale(1.6); /* Etwas vergrößert für bessere Sichtbarkeit */
