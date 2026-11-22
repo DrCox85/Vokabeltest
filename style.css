@@ -27,12 +27,12 @@ html, body {
 
 @keyframes sleepAnim {
     from { background-position: 0px 0px; }
-    to   { background-position: -352px 0px; } /* 11 Frames * 32px */
+    to   { background-position: -320px 0px; } /* 11 Frames * 32px */
 }
 
 /* Sprung-Effekt bei richtiger Antwort */
 .cat-jump {
-    animation: sleepAnim 1.8s steps(11) infinite, catJumpAnim 0.6s ease-out;
+    animation: sleepAnim 1.8s steps(10) infinite, catJumpAnim 0.6s ease-out;
 }
 
 @keyframes catJumpAnim {
@@ -44,7 +44,7 @@ html, body {
 
 /* Kopfschütteln bei falscher Antwort */
 .cat-sad {
-    animation: sleepAnim 1.8s steps(11) infinite, catShake 0.4s ease-in-out;
+    animation: sleepAnim 1.8s steps(10) infinite, catShake 0.4s ease-in-out;
 }
 
 @keyframes catShake {
