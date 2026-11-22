@@ -22,7 +22,7 @@ html, body {
     display: inline-block;
     transform: scale(1.6); /* Etwas vergrößert für bessere Sichtbarkeit */
     image-rendering: pixelated; /* Hält Pixel-Art gestochen scharf */
-    animation: sleepAnim 1.8s steps(11) infinite;
+    animation: sleepAnim 1.8s steps(10) infinite;
 }
 
 @keyframes sleepAnim {
