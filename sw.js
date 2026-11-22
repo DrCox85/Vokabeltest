@@ -4,7 +4,7 @@ const ASSETS = [
   'index.html',
   'style.css',
   'tailwind.js',
-  'amim/sleeping.png',
+  'anim/sleeping.png',
   'manifest.json',
   'js/cat.js',
   'js/data.js',
